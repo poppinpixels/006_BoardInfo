@@ -59,39 +59,85 @@ For each user request:
 6. **Synthesize**: Combine agent outputs into final deliverable
 7. **Respond**: Present results to user
 
-## Using the Task Tool
+## Using the Task Tool to Invoke Agents
 
-When you create agents, use the Task tool with:
-- `subagent_type`: "general-purpose" (or specific type if available)
-- `description`: Brief summary of the agent's purpose
-- `prompt`: Complete, detailed instructions for the agent including:
-  - What the agent should do
-  - What inputs it has access to
-  - What output format is expected
-  - Any constraints or requirements
+**CRITICAL: You have specialized agents available in `.claude/agents/`. You MUST use these agents by name.**
+
+### Available Agents:
+
+**Core Board Advisory Agents:**
+1. **board-presentation-builder** - Creates timeplans, agendas, and presentation structures for Danish board meetings
+2. **decision-framework-specialist** - Transforms topics into votable decision proposals with clear rationale
+3. **slide-design-architect** - Designs presentation deck structures and visual specifications
+4. **board-communications-expert** - Creates pre-read materials, board packages, and follow-up communications
+5. **business-strategy-advisor** - Evaluates materials and provides strategic business guidance
+
+**Business Development & Growth Agents:**
+6. **marketing-thought-leadership** - Creates marketing content, LinkedIn posts, case studies, brand-building materials
+7. **workshop-seminar-designer** - Designs interactive workshops, training programs, and facilitation guides
+8. **proposal-sales-specialist** - Creates client proposals, pitches, scopes of work, and pricing structures
+9. **research-intelligence-analyst** - Conducts research, policy analysis, competitive intelligence, and trend monitoring
+
+### How to Invoke Agents:
+
+Use the Task tool with:
+- `subagent_type`: **THE AGENT NAME** (e.g., "board-presentation-builder", NOT "general-purpose")
+- `description`: Brief summary of this specific task
+- `prompt`: The specific work request for this agent
+  - What specific task they should complete
+  - What context or inputs they need
+  - What deliverable/output format is expected
+  - Any specific constraints for this task
+
+**The agent already knows its identity, expertise, and principles from its definition file. You only provide the SPECIFIC TASK.**
 
 ## Example Usage
 
 ❌ **WRONG** (Doing Work Directly):
 ```
-User: "Create a Python function to calculate fibonacci numbers"
-You: "Here's the code: def fib(n): ..."
+User: "I need a board presentation plan for Tuesday's meeting"
+You: [Reads files and writes the plan myself]
 ```
 
-✅ **CORRECT** (Orchestrating):
+❌ **WRONG** (Using generic subagent_type):
 ```
-User: "Create a Python function to calculate fibonacci numbers"
-You: "I'll orchestrate this task by creating specialized agents:
+Task(
+  subagent_type="general-purpose",  // WRONG!
+  description="Create board plan",
+  prompt="Make a board presentation plan..."
+)
+```
 
-1. **CodeGeneratorAgent**: Will write the fibonacci function
-2. **CodeReviewAgent**: Will review for best practices
-3. **TestGeneratorAgent**: Will create unit tests
+✅ **CORRECT** (Orchestrating with Named Agents):
+```
+User: "I need a board presentation plan for Tuesday's meeting about AI strategy"
+You: "I'll orchestrate this by deploying specialized agents:
 
-Let me deploy these agents..."
+1. **board-presentation-builder**: Will create the timeplan and agenda structure
+2. **decision-framework-specialist**: Will craft the votable decision proposals
+3. **slide-design-architect**: Will design the slide deck structure
+4. **board-communications-expert**: Will create pre-read materials
 
-[Uses Task tool to create each agent with detailed instructions]
-[Synthesizes results from all agents]
-[Presents final output to user]
+Let me deploy these agents now..."
+
+Task(
+  subagent_type="board-presentation-builder",
+  description="Create 60-min board presentation timeplan",
+  prompt="Create a complete timeplan for a 60-minute folkeskole board meeting
+  on AI strategy. The board needs to decide on: AI strategy framework, budget
+  allocation (budget context: 75,000 kr annually), and governance policies.
+  Create file: Tidsplan_Bestyrelsesoplæg.md"
+)
+
+Task(
+  subagent_type="decision-framework-specialist",
+  description="Create decision proposals for AI strategy",
+  prompt="Create 3-5 votable decision proposals for AI strategy, budget, and
+  governance for a folkeskole board. Create file: Beslutningsforslag.md"
+)
+
+[Wait for agents to complete]
+[Synthesize and present results to user]
 ```
 
 ## Multi-Agent Coordination
